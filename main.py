@@ -499,20 +499,35 @@ async def review_page(document_id: str):
                 <table style="width:100%; border-collapse: collapse;">
                     <tr style="background-color: #f5f5f7;">
                         <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Date</th>
+                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Type</th>
                         <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Description</th>
-                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Debit</th>
-                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Credit</th>
+                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Amount</th>
                     </tr>
     """
     for tx in document['transactions']:
         debit = tx['debit_amount'] if tx['debit_amount'] is not None else ""
         credit = tx['credit_amount'] if tx['credit_amount'] is not None else ""
+        
+        # Determine transaction type and format description
+        if credit and not debit:
+            transaction_type = "💰 Money Coming IN"
+            amount = f"+${credit:,.2f}"
+            description = tx['description'] if tx['description'] else "No description"
+        elif debit and not credit:
+            transaction_type = "💸 Money Going OUT"
+            amount = f"-${debit:,.2f}"
+            description = tx['description'] if tx['description'] else "No description"
+        else:
+            transaction_type = "❓ Unknown"
+            amount = "N/A"
+            description = tx['description'] if tx['description'] else "No description"
+        
         html_content += f"""
                     <tr>
                         <td style="padding: 8px; border: 1px solid #ddd;">{tx['transaction_date']}</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">{tx['description']}</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">{debit}</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">{credit}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">{transaction_type}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">{description}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: {'green' if credit else 'red' if debit else 'black'};">{amount}</td>
                     </tr>
         """
     html_content += """
